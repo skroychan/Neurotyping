@@ -1,0 +1,41 @@
+body, input, select, button, table {
+	font-size: 16pt;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.smol-text {
+	font-size: 10pt;
+}
+
+#chart-wrapper {
+	width: 900px;
+	height: 900px;
+}
+
+#chart-img {
+	position: absolute;
+	max-height: 900px;
+	-webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#chart {
+	position: absolute;
+	margin-left: 100px;
+	margin-top: 100px;
+	width: 700px;
+	height: 700px;
+}
+
+.draggable {
+	position: absolute;
+	cursor: move;
+}
+
+.center {
+	text-align: center;
+	vertical-align: middle;
+}
