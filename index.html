@@ -1,0 +1,87 @@
+<html>
+<head>
+	<title>neurotype this</title>
+	<link rel="stylesheet" type="text/css" href="style.css"></link>
+</head>
+<body>
+	<table>
+		<colgroup>
+			<col style="width:10%">
+			<col style="width:40%">
+			<col style="width:40%">
+			<col style="width:10%">
+		</colgroup>
+		<tr>
+			<td/>
+			<td rowspan="3">
+				<div id="chart-wrapper">
+					<img id="chart-img" draggable="false" src="chart.png"></img>
+					<div id="chart"></div>
+				</div>
+			</td>
+			<td id="percent" class="center">
+				<p id="percent1">---</p>
+				<p id="percent2">---</p>
+				<p id="percent3">---</p>
+				<p id="percent4">---</p>
+			</td>
+			<td/>
+		</tr>
+		<tr>
+			<td/>
+			<td id="upload" class="center">
+					<p>
+						Drag&drop images onto the chart or
+						<input id="image-file" type="file" name="image-file" accept="image/png, image/jpeg" multiple hidden/>
+						<input id="pick-file" type="button" value="Upload"/>
+					</p>
+					<p>
+						<label for="image-url">or insert link:</label>
+						<input type="text" id="image-url" name="image-url"/>
+						<button id="submit-link">Add</button>
+					</p>
+					<p>
+						RMB to remove image
+					</p>
+					<a id="saveLink" download="chart.png">
+						<button id="save" type="button">Save chart</button>
+					</a>
+			</td>
+			<td/>
+		</tr>
+		<tr>
+			<td/>
+			<td id="options" class="center">
+				<p>
+					<label for="image-size">Image size:</label>
+					<select name="image-size" id="image-size">
+						<!--option value="0">Source</option-->
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3" selected>3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+					</select>
+				</p>
+				<p>
+					<label for="crop">
+						<input type="checkbox" id="crop" name="crop" value="crop" checked>
+						Crop image
+					</label>
+				</p>
+				<p>
+					<label for="snap">
+						<input type="checkbox" id="snap" name="snap" value="snap" checked>
+						Snap to grid
+					</label>
+				</p>
+				<p class="smol-text">
+					Move an image to apply settings
+				</p>
+			</td>
+			<td/>
+		</tr>
+	</table>
+	<script type="text/javascript" src="script.js"></script>
+</body>
+</html>
