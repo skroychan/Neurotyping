@@ -31,14 +31,16 @@
 			<td/>
 			<td id="upload" class="center">
 					<p>
-						Drag&drop images onto the chart or
-						<input id="image-file" type="file" name="image-file" accept="image/png, image/jpeg" multiple hidden/>
-						<input id="pick-file" type="button" value="Upload"/>
+						Drag&drop images or paste with Ctrl+V
 					</p>
 					<p>
-						<label for="image-url">or insert link:</label>
-						<input type="text" id="image-url" name="image-url"/>
+						<input type="text" id="image-url" name="image-url" placeholder="Paste a link"/>
 						<button id="submit-link">Add</button>
+					</p>
+					<p>
+						<input id="image-file" type="file" name="image-file" accept="image/png, image/jpeg" multiple hidden/>
+						<input id="pick-file" type="button" value="Upload"/>
+						from your device
 					</p>
 					<p>
 						RMB to remove image
@@ -55,7 +57,6 @@
 				<p>
 					<label for="image-size">Image size:</label>
 					<select name="image-size" id="image-size">
-						<!--option value="0">Source</option-->
 						<option value="1">1</option>
 						<option value="2">2</option>
 						<option value="3" selected>3</option>

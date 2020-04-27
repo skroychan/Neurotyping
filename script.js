@@ -25,9 +25,10 @@ var chart = document.getElementById("chart");
 chart.addEventListener("dragenter", dragenter, false);
 chart.addEventListener("dragover", dragover, false);
 chart.addEventListener("drop", drop, false);
-chart.addEventListener('contextmenu', rmbPress, false);
-chart.addEventListener('mousedown', startDrag, false);
-document.addEventListener('mouseup', stopDrag, false);
+chart.addEventListener("contextmenu", rmbPress, false);
+chart.addEventListener("mousedown", startDrag, false);
+document.addEventListener("mouseup", stopDrag, false);
+document.addEventListener("paste", paste, false);
 
 var chartBounds = chart.getBoundingClientRect();
 var chartSize = chartBounds.right - chartBounds.left;
@@ -105,6 +106,22 @@ function rmbPress(e) {
 	}
 
 	return false;
+}
+
+function paste(e) {
+	var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+	var files = [];
+	for (index in items) {
+		var item = items[index];
+		if (item.kind === "file") {
+			var blob = item.getAsFile();
+			files.push(blob);
+		}
+	}
+
+	if (files) {
+		handleFiles(files);
+	}
 }
 
 function startDrag(e) {
@@ -200,6 +217,8 @@ function addImageFromUrl() {
 	}
 
 	img.src = linkInput.value;
+
+	linkInput.value = "";
 }
 
 function placeImage(img, x, y) {
@@ -219,7 +238,6 @@ function updateImage(img, x, y) {
 	} else {
 		currentImage.width = imageSize;
 		currentImage.height = imageSize;
-		console.log(currentImage.width + " " + currentImage.height);
 	}
 
 	/*if (isCrop && isCircle) {
