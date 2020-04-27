@@ -64,10 +64,13 @@
 					</select>
 				</p>
 				<p>
-					<label for="crop">
-						<input type="checkbox" id="crop" name="crop" value="crop" checked>
-						Crop image
-					</label>
+					<label for="crop-style">Crop:</label>
+					<select name="crop-style" id="crop-style">
+						<option value="square" selected>Square</option>
+						<!-- <option value="circle">Circle</option> -->
+						<option value="stretch">Stretch</option>
+						<option value="none">None</option>
+					</select>
 				</p>
 				<p>
 					<label for="snap">
