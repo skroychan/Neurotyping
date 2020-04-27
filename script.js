@@ -314,6 +314,8 @@ function saveImage() {
 	var style = chart.currentStyle || window.getComputedStyle(chart);
 	var offset = parseInt(style.marginTop) / chartResizeRatio;
 	var ctx = canvas.getContext('2d');
+	ctx.fillStyle = "white";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.drawImage(chartOuter, 0, 0);
 
 	for (var i = 0; i < chart.children.length; i++) {
