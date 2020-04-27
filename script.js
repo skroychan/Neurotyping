@@ -19,7 +19,7 @@ var neurotypes = [
 
 var maxPos = 0.8768818634994983;
 var minPos = 0.12311806289729008;
-var blankColor = "#ffffff";
+var blankColor = "#f5f5f5";
 
 var chart = document.getElementById("chart");
 chart.addEventListener("dragenter", dragenter, false);
@@ -36,12 +36,12 @@ var chartOuter = document.getElementById("chart-img");
 var chartResizeRatio = chartOuter.width / chartOuter.naturalWidth;
 
 var saveLink = document.getElementById("saveLink");
-var selectSize = document.getElementById("image-size")
-selectSize.addEventListener("change", selectSizeChange);
+var sizeSelect = document.getElementById("image-size")
+sizeSelect.addEventListener("change", sizeSelectChange);
+var cropSelect = document.getElementById("crop-style")
+cropSelect.addEventListener("change", cropSelectChange);
 var snapCheckbox = document.getElementById("snap");
 snapCheckbox.addEventListener("change", snapChange);
-var cropCheckbox = document.getElementById("crop");
-cropCheckbox.addEventListener("change", cropChange);
 
 var imageInput = document.getElementById("image-file");
 document.getElementById("pick-file").addEventListener("click", function() { imageInput.click(); });
@@ -70,6 +70,10 @@ setImageSize(3);
 
 var isSnapToGrid = true;
 var isCrop = true;
+var isCircle = false;
+var isKeepAspect = false;
+
+var circleClassName = "rounded";
 
 var currentImage;
 
@@ -208,8 +212,21 @@ function placeImage(img, x, y) {
 function updateImage(img, x, y) {
 	setCurrentImage(img, x, y);
 
-	currentImage.width = imageSize;
-	currentImage.height = imageSize;
+	if (isKeepAspect) {
+		var ratio = parseInt(img.naturalHeight) / parseInt(img.naturalWidth);
+		currentImage.width = ratio > 1 ? imageSize : imageSize / ratio;
+		currentImage.height = ratio > 1 ? imageSize * ratio : imageSize;
+	} else {
+		currentImage.width = imageSize;
+		currentImage.height = imageSize;
+		console.log(currentImage.width + " " + currentImage.height);
+	}
+
+	/*if (isCrop && isCircle) {
+		currentImage.img.classList.add(circleClassName);
+	} else {
+		currentImage.img.classList.remove(circleClassName);
+	}*/
 
 	currentImage.offset = calculateOffset(currentImage.img);
 
@@ -249,14 +266,12 @@ function snapToGrid() {
 }
 
 function calculateOffset(img) {
-	var dif = img.naturalHeight - img.naturalWidth;
-	if (isCrop && dif != 0) {
-		if (dif > 0) {
-			var ratio = parseInt(img.naturalHeight) / parseInt(img.naturalWidth);
+	if (isCrop) {
+		var ratio = parseInt(img.naturalHeight) / parseInt(img.naturalWidth);
+		if (ratio > 1) {
 			return [0, 0, 0, imageSize * ratio - imageSize];
-		} else {
-			var ratio = parseInt(img.naturalWidth) / parseInt(img.naturalHeight);
-			return [(imageSize * ratio - imageSize) / 2, 0, (imageSize * ratio - imageSize) / 2, 0];
+		} else if (ratio < 1) {
+			return [(imageSize / ratio - imageSize) / 2, 0, (imageSize / ratio - imageSize) / 2, 0];
 		}
 	}
 
@@ -289,7 +304,7 @@ function applyCurrentImage(img) {
 	img.style.top = currentImage.pos[1] - currentImage.offset[1];
 	img.style.width = currentImage.width + currentImage.offset[0] + currentImage.offset[2];
 	img.style.height = currentImage.height + currentImage.offset[1] + currentImage.offset[3];
-	img.style.clip = "rect(0, " + (imageSize + currentImage.offset[0]) + ", " + imageSize + ", " + currentImage.offset[2] + ")";
+	img.style.clip = "rect(0, " + (currentImage.width + currentImage.offset[0]) + ", " + currentImage.height + ", " + currentImage.offset[2] + ")";
 }
 
 function saveImage() {
@@ -323,21 +338,38 @@ function saveImage() {
 	saveLink.setAttribute("href", image);
 }
 
-function selectSizeChange(e) {
-	var val = e.target.value;
-	//if (val == "0") {
+function sizeSelectChange(e) {
+	setImageSize(e.target.value);
+}
 
-	//} else {
-		setImageSize(val);
-	//}
+function cropSelectChange(e) {
+	switch (e.target.value) {
+		case "square":
+			isCrop = true;
+			isCircle = false;
+			isKeepAspect = false;
+			break;
+		/*case "circle":
+			isCrop = true;
+			isCircle = true;
+			isKeepAspect = false;
+			break;*/
+		case "stretch":
+			isCrop = false;
+			isKeepAspect = false;
+			break;
+		case "none":
+			isCrop = false;
+			isKeepAspect = true;
+			break;
+	}
+
+	snapCheckbox.disabled = isKeepAspect;
+	isSnapToGrid = !isKeepAspect;
 }
 
 function snapChange(e) {
 	isSnapToGrid = snapCheckbox.checked;
-}
-
-function cropChange(e) {
-	isCrop = cropCheckbox.checked;
 }
 
 function updateLabels() {
