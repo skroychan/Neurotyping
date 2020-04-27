@@ -58,9 +58,7 @@ var percentElements = [
 	document.getElementById("percent4")
 ];
 
-for (var i = 0; i <= percentElements.length - 1; i++) {
-	percentElements[i].style.color = blankColor;
-}
+resetLabels();
 
 var gridSize = 20;
 var gridBorder = 5 * chartResizeRatio;
@@ -104,6 +102,8 @@ function rmbPress(e) {
 	if (targ.classList.contains('draggable')) {
 		e.target.remove();
 	}
+
+	resetLabels();
 
 	return false;
 }
@@ -341,16 +341,16 @@ function saveImage() {
 		if (child.nodeName == 'IMG') {
 			var wResizeRatio = child.naturalWidth / child.width;
 			var hResizeRatio = child.naturalHeight / child.height;
-			var matches = child.style.clip.substring(child.style.clip.indexOf("(") + 1, child.style.clip.indexOf(")")).replace(/px/g, "").split(", ");
+			var clip = child.style.clip.substring(child.style.clip.indexOf("(") + 1, child.style.clip.indexOf(")")).replace(/px/g, "").split(", ");
 			ctx.drawImage(child,
-				matches[3] * wResizeRatio,
-				matches[0] * hResizeRatio,
-				(parseFloat(matches[1]) - parseFloat(matches[3])) * wResizeRatio,
-				(parseFloat(matches[2]) - parseFloat(matches[0])) * hResizeRatio,
-				offset + (parseFloat(child.style.left) + parseFloat(matches[3])) / chartResizeRatio,
-				offset + (parseFloat(child.style.top) + parseFloat(matches[0])) / chartResizeRatio,
-				(parseFloat(matches[1]) - parseFloat(matches[3])) / chartResizeRatio,
-				(parseFloat(matches[2]) - parseFloat(matches[0])) / chartResizeRatio
+				clip[3] * wResizeRatio,
+				clip[0] * hResizeRatio,
+				(parseFloat(clip[1]) - parseFloat(clip[3])) * wResizeRatio,
+				(parseFloat(clip[2]) - parseFloat(clip[0])) * hResizeRatio,
+				offset + (parseFloat(child.style.left) + parseFloat(clip[3])) / chartResizeRatio,
+				offset + (parseFloat(child.style.top) + parseFloat(clip[0])) / chartResizeRatio,
+				(parseFloat(clip[1]) - parseFloat(clip[3])) / chartResizeRatio,
+				(parseFloat(clip[2]) - parseFloat(clip[0])) / chartResizeRatio
 			);
 		}
 	}
@@ -390,6 +390,13 @@ function cropSelectChange(e) {
 
 function snapChange(e) {
 	isSnapToGrid = snapCheckbox.checked;
+}
+
+function resetLabels() {
+	for (var i = 0; i < percentElements.length; i++) {
+		percentElements[i].innerHTML = "---";
+		percentElements[i].style.color = blankColor;
+	}
 }
 
 function updateLabels() {
