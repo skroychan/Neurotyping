@@ -47,8 +47,6 @@ snapCheckbox.addEventListener("change", snapChange);
 var imageInput = document.getElementById("image-file");
 document.getElementById("pick-file").addEventListener("click", function() { imageInput.click(); });
 imageInput.addEventListener("change", uploadImages, false);
-var linkInput = document.getElementById("image-url");
-document.getElementById("submit-link").addEventListener("click", addImageFromUrl);
 document.getElementById("save").addEventListener("click", saveImage);
 
 var percentElements = [
@@ -116,6 +114,10 @@ function paste(e) {
 		if (item.kind === "file") {
 			var blob = item.getAsFile();
 			files.push(blob);
+		} else if (item.kind === "string") {
+			item.getAsString(function (s) {
+				addImageFromUrl(s);
+			});
 		}
 	}
 
@@ -203,9 +205,7 @@ function handleFiles(files, x, y) {
 	}
 }
 
-function addImageFromUrl() {
-    if (linkInput.value.match(/\.(jpeg|jpg|gif|png)$/) == null) return;
-
+function addImageFromUrl(url) {
 	x = chartSize / 2 - imageSize / 2;
 	y = chartSize / 2 - imageSize / 2;
 
@@ -216,9 +216,7 @@ function addImageFromUrl() {
 		placeImage(img, x, y);
 	}
 
-	img.src = linkInput.value;
-
-	linkInput.value = "";
+	img.src = url;
 }
 
 function placeImage(img, x, y) {
