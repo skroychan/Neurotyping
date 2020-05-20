@@ -142,28 +142,26 @@ function onHashChange(e) {
 
 function setPage() {
 	var hash = window.location.hash;
-	if (hash) {
-		if (hash == "#heatmap") {
-			menuLinkChart.classList.remove(activeMenuClass);
-			chart.style.display = "none";
-			divPercent.style.display = "none";
-			divUpload.style.display = "none";
-			divOptions.style.display = "none";
+	if (hash == "#heatmap") {
+		menuLinkChart.classList.remove(activeMenuClass);
+		chart.style.display = "none";
+		divPercent.style.display = "none";
+		divUpload.style.display = "none";
+		divOptions.style.display = "none";
 
-			menuLinkHeatmap.classList.add(activeMenuClass);
-			divHeatmap.style.display = "block";
-			divHeatmapOptions.style.display = "block";
-		} else {
-			menuLinkChart.classList.add(activeMenuClass);
-			chart.style.display = "block";
-			divPercent.style.display = "block";
-			divUpload.style.display = "block";
-			divOptions.style.display = "block";
-			
-			menuLinkHeatmap.classList.remove(activeMenuClass);
-			divHeatmap.style.display = "none";
-			divHeatmapOptions.style.display = "none";
-		}
+		menuLinkHeatmap.classList.add(activeMenuClass);
+		divHeatmap.style.display = "block";
+		divHeatmapOptions.style.display = "block";
+	} else {
+		menuLinkChart.classList.add(activeMenuClass);
+		chart.style.display = "block";
+		divPercent.style.display = "block";
+		divUpload.style.display = "block";
+		divOptions.style.display = "block";
+		
+		menuLinkHeatmap.classList.remove(activeMenuClass);
+		divHeatmap.style.display = "none";
+		divHeatmapOptions.style.display = "none";
 	}
 }
 
