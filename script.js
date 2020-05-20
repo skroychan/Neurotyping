@@ -27,6 +27,7 @@ chart.addEventListener("dragover", dragover, false);
 chart.addEventListener("drop", drop, false);
 chart.addEventListener("contextmenu", rmbPress, false);
 chart.addEventListener("mousedown", startDrag, false);
+document.addEventListener("mousemove", mouseMove, false);
 document.addEventListener("mouseup", stopDrag, false);
 document.addEventListener("paste", paste, false);
 
@@ -36,7 +37,7 @@ var chartSize = chartBounds.right - chartBounds.left;
 var chartOuter = document.getElementById("chart-img");
 var chartResizeRatio = chartOuter.width / chartOuter.naturalWidth;
 
-var saveLink = document.getElementById("saveLink");
+var saveLink = document.getElementById("save-link");
 var sizeSelect = document.getElementById("image-size")
 sizeSelect.addEventListener("change", sizeSelectChange);
 var cropSelect = document.getElementById("crop-style")
@@ -49,6 +50,16 @@ document.getElementById("pick-file").addEventListener("click", function() { imag
 imageInput.addEventListener("change", uploadImages, false);
 document.getElementById("save").addEventListener("click", saveImage);
 
+var menuLinkChart = document.getElementById("menu-chart");
+var menuLinkHeatmap = document.getElementById("menu-heatmap");
+
+var divPercent = document.getElementById("percent");
+var divUpload = document.getElementById("upload");
+var divOptions = document.getElementById("options");
+
+var divHeatmap = document.getElementById("heatmap");
+var divHeatmapOptions = document.getElementById("heatmap-options");
+
 var percentElements = [
 	document.getElementById("percent1"),
 	document.getElementById("percent2"),
@@ -57,6 +68,46 @@ var percentElements = [
 ];
 
 resetLabels();
+
+var heatmapCanvas = document.getElementById("heatmap-canvas");
+var heatmapTempCanvas = document.getElementById("heatmap-temp-canvas");
+heatmapCanvas.width = heatmapTempCanvas.width = chartSize;
+heatmapCanvas.height = heatmapTempCanvas.height = chartSize;
+heatmapCanvas.addEventListener("mousedown", heatmapMouseDown, false);
+heatmapCanvas.addEventListener("contextmenu", rmbPress, false);
+heatmapTempCanvas.addEventListener("mousedown", heatmapMouseDown, false);
+heatmapTempCanvas.addEventListener("contextmenu", rmbPress, false);
+
+var context = heatmapCanvas.getContext("2d");
+context.lineCap = "round";
+context.lineJoin = "round";
+context.lineWidth = 50;
+var tempContext = heatmapTempCanvas.getContext("2d");
+tempContext.lineCap = "round";
+tempContext.lineJoin = "round";
+tempContext.lineWidth = 10;
+
+var heatmapOutlinePoints;
+
+var heatmapEraserButton = document.getElementById("eraser-button");
+heatmapEraserButton.addEventListener("click", function() { setHeatmapColorIndex(0); }, false);
+var heatmapGreenButton = document.getElementById("green-color-button");
+heatmapGreenButton.addEventListener("click", function() { setHeatmapColorIndex(1); }, false);
+var heatmapYellowButton = document.getElementById("yellow-color-button");
+heatmapYellowButton.addEventListener("click", function() { setHeatmapColorIndex(2); }, false);
+var heatmapRedButton = document.getElementById("red-color-button");
+heatmapRedButton.addEventListener("click", function() { setHeatmapColorIndex(3); }, false);
+document.getElementById("heatmap-clear").addEventListener("click", heatmapReset);
+var heatmapSaveLink = document.getElementById("heatmap-save-link");
+var heatmapSave = document.getElementById("heatmap-save");
+heatmapSave.addEventListener("click", heatmapSaveClick, false);
+
+var heatmapColors = ["eraser", "green", "yellow", "red"];
+var heatmapColorButtons = [heatmapEraserButton, heatmapGreenButton, heatmapYellowButton, heatmapRedButton];
+var heatmapActiveButtonClass = "color-button-active";
+
+var heatmapColorIndex;
+setHeatmapColorIndex(1);
 
 var gridSize = 20;
 var gridBorder = 5 * chartResizeRatio;
@@ -71,9 +122,50 @@ var isCircle = false;
 var isKeepAspect = false;
 
 var circleClassName = "rounded";
+var activeMenuClass = "active";
 
+var isDrag = false;
+var isHeatmapDraw = false;
+var isHeatmapErase = false;
+
+var dragTarget;
 var currentImage;
 
+window.addEventListener("hashchange", onHashChange, false);
+
+setPage();
+
+
+function onHashChange(e) {
+	setPage();
+}
+
+function setPage() {
+	var hash = window.location.hash;
+	if (hash) {
+		if (hash == "#heatmap") {
+			menuLinkChart.classList.remove(activeMenuClass);
+			chart.style.display = "none";
+			divPercent.style.display = "none";
+			divUpload.style.display = "none";
+			divOptions.style.display = "none";
+
+			menuLinkHeatmap.classList.add(activeMenuClass);
+			divHeatmap.style.display = "block";
+			divHeatmapOptions.style.display = "block";
+		} else {
+			menuLinkChart.classList.add(activeMenuClass);
+			chart.style.display = "block";
+			divPercent.style.display = "block";
+			divUpload.style.display = "block";
+			divOptions.style.display = "block";
+			
+			menuLinkHeatmap.classList.remove(activeMenuClass);
+			divHeatmap.style.display = "none";
+			divHeatmapOptions.style.display = "none";
+		}
+	}
+}
 
 function dragenter(e) {
 	e.stopPropagation();
@@ -95,13 +187,10 @@ function drop(e) {
 function rmbPress(e) {
 	e.preventDefault();
 
-	targ = e.target ? e.target : e.srcElement;
-
-	if (targ.classList.contains('draggable')) {
+	if (e.target.classList.contains('draggable')) {
 		e.target.remove();
+		resetLabels();
 	}
-
-	resetLabels();
 
 	return false;
 }
@@ -127,43 +216,136 @@ function paste(e) {
 }
 
 function startDrag(e) {
-	targ = e.target ? e.target : e.srcElement;
-
-	if (!targ.classList.contains('draggable')) {
+	if (!e.target.classList.contains('draggable')) {
 		return;
 	}
+
+	e.preventDefault();
+	dragTarget = e.target;
 
 	offsetX = e.clientX;
 	offsetY = e.clientY;
 
-	var offset = calculateOffset(targ);
-	coordX = parseFloat(targ.style.left) + offset[0];
-	coordY = parseFloat(targ.style.top) + offset[1];
+	var offset = calculateOffset(dragTarget);
+	coordX = parseFloat(dragTarget.style.left) + offset[0];
+	coordY = parseFloat(dragTarget.style.top) + offset[1];
 
-	drag = true;
-
-	document.onmousemove = dragDiv;
+	isDrag = true;
 
 	return false;
 }
 
-function dragDiv(e) {
-	if (!drag) {
-		return;
-	}
-	
-	var x = coordX + e.clientX - offsetX;
-	var y = coordY + e.clientY - offsetY;
+function mouseMove(e) {
+	if (isDrag) {
+		var x = coordX + e.clientX - offsetX;
+		var y = coordY + e.clientY - offsetY;
 
-	updateImage(targ, x, y);
+		updateImage(dragTarget, x, y);
+	} else if (isHeatmapDraw) {
+		chartBounds = divHeatmap.getBoundingClientRect();
+		var x = e.clientX - chartBounds.left;
+		var y = e.clientY - chartBounds.top;
+
+		var ctx = isHeatmapErase ? context : tempContext;
+		if (isHeatmapErase) {
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			x -= e.movementX;
+			y -= e.movementY;
+		} else {
+			heatmapOutlinePoints.push([x, y]);
+		}
+		ctx.lineTo(x, y);
+		ctx.stroke();
+	}
 
 	return false;
 }
 
 function stopDrag() {
-	drag = false;
+	if (isHeatmapDraw) {
+		if (!isHeatmapErase) {
+			tempContext.clearRect(0, 0, heatmapTempCanvas.width, heatmapTempCanvas.height);
+			heatmapOutlinePoints = simplifyPath(heatmapOutlinePoints, 2);
+
+			var i = 0;
+			tempContext.beginPath();
+			tempContext.moveTo(heatmapOutlinePoints[0][0], heatmapOutlinePoints[0][1]);
+			for (i = 1; i < heatmapOutlinePoints.length - 1; i++) {
+				var xc = (heatmapOutlinePoints[i][0] + heatmapOutlinePoints[i + 1][0]) / 2;
+				var yc = (heatmapOutlinePoints[i][1] + heatmapOutlinePoints[i + 1][1]) / 2;
+				tempContext.quadraticCurveTo(heatmapOutlinePoints[i][0], heatmapOutlinePoints[i][1], xc, yc);
+			}
+			tempContext.quadraticCurveTo(heatmapOutlinePoints[i][0], heatmapOutlinePoints[i][1], heatmapOutlinePoints[0][0], heatmapOutlinePoints[0][1]);
+			tempContext.stroke();
+			tempContext.fill();
+			context.drawImage(heatmapTempCanvas, 0, 0);
+			tempContext.clearRect(0, 0, heatmapTempCanvas.width, heatmapTempCanvas.height);
+		} else {
+			context.closePath();
+		}
+	}
+
+	isDrag = false;
+	isHeatmapDraw = false;
 }
 
+function heatmapMouseDown(e) {
+	isHeatmapDraw = true;
+
+	if (!isHeatmapErase) {
+		tempContext.strokeStyle = tempContext.fillStyle = heatmapColors[heatmapColorIndex];
+		tempContext.beginPath();
+		tempContext.moveTo(e.offsetX, e.offsetY);
+		heatmapOutlinePoints = [[e.offsetX, e.offsetY]];
+	} else {
+		context.beginPath();
+		context.moveTo(e.offsetX, e.offsetY);
+	}
+
+	return false;
+}
+
+function heatmapSetPen(isPen) {
+	isHeatmapErase = !isPen;
+	context.globalCompositeOperation = isHeatmapErase ? "destination-out" : "source-over";
+	heatmapTempCanvas.style.display = isHeatmapErase ? "none" : "block";
+}
+
+function heatmapReset() {
+	context.clearRect(0, 0, heatmapCanvas.width, heatmapCanvas.height);
+	setHeatmapColorIndex(1);
+}
+
+function setHeatmapColorIndex(index) {
+	heatmapSetPen(index != 0);
+	heatmapColorIndex = index;
+	for (var i = 0; i < heatmapColors.length; i++) {
+		if (heatmapColorIndex == i) {
+			heatmapColorButtons[i].classList.add(heatmapActiveButtonClass);
+		} else {
+			heatmapColorButtons[i].classList.remove(heatmapActiveButtonClass);
+		}
+	}
+}
+
+function heatmapSaveClick() {
+	var newCanvas = document.createElement("canvas");
+	newCanvas.width = chartOuter.naturalWidth;
+	newCanvas.height = chartOuter.naturalHeight;
+	var style = window.getComputedStyle(divHeatmap);
+	var offset = parseInt(style.marginTop) / chartResizeRatio;
+	var size = heatmapCanvas.width / chartResizeRatio;
+	var ctx = newCanvas.getContext('2d');
+	ctx.fillStyle = "white";
+	ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+	ctx.drawImage(chartOuter, 0, 0);
+	ctx.globalAlpha = window.getComputedStyle(heatmapCanvas).opacity;
+	ctx.drawImage(heatmapCanvas, offset, offset, size, size);
+
+	var image = newCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+	heatmapSaveLink.setAttribute("href", image);
+}
 
 function uploadImages() {
 	handleFiles(imageInput.files);
@@ -221,7 +403,6 @@ function addImageFromUrl(url) {
 
 function placeImage(img, x, y) {
 	img.classList.add("draggable");
-	//img.crossOrigin = "anonymous";
 
 	updateImage(img, x, y);
 }
@@ -429,14 +610,67 @@ function getPercentages(x, y) {
 	return result;
 
 	function calculatePercent(centerX, centerY, x, y) {
-		if (x > maxPos) x = maxPos;
-		if (y > maxPos) y = maxPos;
-		if (x < minPos) x = minPos;
-		if (y < minPos) y = minPos;
+		if (x > maxPos) { x = maxPos; }
+		else if (x < minPos) { x = minPos; }
+		if (y > maxPos) { y = maxPos; }
+		else if (y < minPos) { y = minPos; }
 		
 		var px = (1 - Math.abs(centerX - x) / 0.25);
 		var py = (1 - Math.abs(centerY - y) / 0.25);
 		if (px <= 0 && py <= 0) return -(px * py);
 		return px * py;
 	}
+}
+
+function simplifyPath(points, length) {
+	function simplify(start, end) {
+		var index, dx, dy, p, t, dist;
+		var p1 = points[start];
+		var p2 = points[end];
+		var xx = p1[0];
+		var yy = p1[1];
+		var ddx = p2[0] - xx;
+		var ddy = p2[1] - yy;
+		var dist1 = ddx * ddx + ddy * ddy;
+		var maxDist = length;
+		for (var i = start + 1; i < end; i++) {
+			p = points[i];
+			if (ddx !== 0 || ddy !== 0) {
+				t = ((p[0] - xx) * ddx + (p[1] - yy) * ddy) / dist1;
+				if (t > 1) {
+					dx = p[0] - p2[0];
+					dy = p[1] - p2[1];
+				} else if (t > 0) {
+					dx = p[0] - (xx + ddx * t);
+					dy = p[1] - (yy + ddy * t);
+				} else {
+					dx = p[0] - xx;
+					dy = p[1] - yy;
+				}
+			} else {
+				dx = p[0] - xx;
+				dy = p[1] - yy;
+			}
+			dist = dx * dx + dy * dy;
+			if (dist > maxDist) {
+				index = i;
+				maxDist = dist;
+			}
+		}
+
+		if (maxDist > length) {
+			if (index - start > 1) {
+				simplify(start, index);
+			}
+			newLine.push(points[index]);
+			if (end - index > 1) {
+				simplify(index, end);
+			}
+		}
+	}
+	var end = points.length - 1;
+	var newLine = [points[0]];
+	simplify(0, end);
+	newLine.push(points[end]);
+	return newLine;
 }

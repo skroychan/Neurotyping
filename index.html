@@ -12,24 +12,39 @@
 			<col style="width:10%">
 		</colgroup>
 		<tr>
+			<td colspan="4" class="center">
+				<ul>
+					<li><a href="#chart" class="menu-link active" id="menu-chart">Neurotyping chart</a></li>
+					<li><a href="#heatmap" class="menu-link" id="menu-heatmap">Neurotendency heatmap</a></li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
 			<td/>
 			<td rowspan="3">
 				<div id="chart-wrapper">
 					<img id="chart-img" draggable="false" src="chart.png"></img>
-					<div id="chart"></div>
+					<div id="chart" class="inner-chart"></div>
+					<div id="heatmap" style="display:none" class="inner-chart">
+						<canvas id="heatmap-canvas"></canvas>
+						<canvas id="heatmap-temp-canvas"></canvas>
+					</div>
 				</div>
 			</td>
-			<td id="percent" class="center">
-				<p id="percent1">---</p>
-				<p id="percent2">---</p>
-				<p id="percent3">---</p>
-				<p id="percent4">---</p>
+			<td class="center">
+				<div id="percent">
+					<p id="percent1">---</p>
+					<p id="percent2">---</p>
+					<p id="percent3">---</p>
+					<p id="percent4">---</p>
+				</div>
 			</td>
 			<td/>
 		</tr>
 		<tr>
 			<td/>
-			<td id="upload" class="center">
+			<td class="center">
+				<div id="upload">
 					<p>
 						Drag&drop images or paste with Ctrl+V
 					</p>
@@ -41,43 +56,68 @@
 					<p>
 						RMB to remove image
 					</p>
-					<a id="saveLink" download="chart.png">
-						<button id="save" type="button">Save chart</button>
-					</a>
+					<p>
+						<a id="save-link" download="chart.png">
+							<button id="save" type="button">Save as an image</button>
+						</a>
+					</p>
+				</div>
+				<div id="heatmap-options">
+					<p>
+						Pick a color
+					</p>
+					<p>
+						<button id="eraser-button" class="color-button no-color">x</button>
+						<button id="green-color-button" class="color-button green-color"></button>
+						<button id="yellow-color-button" class="color-button yellow-color"></button>
+						<button id="red-color-button" class="color-button red-color"></button>
+					</p>
+					<p>
+						Outline an area on the chart
+					</p>
+					<p>
+						<button id="heatmap-clear">Reset</button>
+						<a id="heatmap-save-link" download="heatmap.png">
+							<button id="heatmap-save" type="button">Save as an image</button>
+						</a>
+					</p>
+				</div>
 			</td>
 			<td/>
 		</tr>
 		<tr>
 			<td/>
-			<td id="options" class="center">
-				<p>
-					<label for="image-size">Image size:</label>
-					<select name="image-size" id="image-size">
-						<option value="1">1</option>
-						<option value="2">2</option>
-						<option value="3" selected>3</option>
-						<option value="4">4</option>
-						<option value="5">5</option>
-					</select>
-				</p>
-				<p>
-					<label for="crop-style">Crop:</label>
-					<select name="crop-style" id="crop-style">
-						<option value="square" selected>Square</option>
-						<!-- <option value="circle">Circle</option> -->
-						<option value="stretch">Stretch</option>
-						<option value="none">None</option>
-					</select>
-				</p>
-				<p>
-					<label for="snap">
-						<input type="checkbox" id="snap" name="snap" value="snap" checked>
-						Snap to grid
-					</label>
-				</p>
-				<p class="smol-text">
-					Move an image to apply settings
-				</p>
+			<td class="center">
+				<div id="options">
+					<p>
+						<label for="image-size">Image size:</label>
+						<select name="image-size" id="image-size">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3" selected>3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</p>
+					<p>
+						<label for="crop-style">Crop:</label>
+						<select name="crop-style" id="crop-style">
+							<option value="square" selected>Square</option>
+							<!-- <option value="circle">Circle</option> -->
+							<option value="stretch">Stretch</option>
+							<option value="none">None</option>
+						</select>
+					</p>
+					<p>
+						<label for="snap">
+							<input type="checkbox" id="snap" name="snap" value="snap" checked>
+							Snap to grid
+						</label>
+					</p>
+					<p class="smol-text">
+						Move an image to apply settings
+					</p>
+				</div>
 			</td>
 			<td/>
 		</tr>
