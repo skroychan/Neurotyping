@@ -61,6 +61,9 @@
 							<button id="save" type="button">Save as an image</button>
 						</a>
 					</p>
+					<p class="smol-text">
+						<a href="https://www.youtube.com/watch?v=R1ndTCR4aKg">What is this?</a>
+					</p>
 				</div>
 				<div id="heatmap-options">
 					<p>
@@ -70,16 +73,26 @@
 						<button id="eraser-button" class="color-button no-color">x</button>
 						<button id="green-color-button" class="color-button green-color"></button>
 						<button id="yellow-color-button" class="color-button yellow-color"></button>
+						<button id="orange-color-button" class="color-button orange-color"></button>
 						<button id="red-color-button" class="color-button red-color"></button>
 					</p>
 					<p>
-						Outline an area on the chart
+						<select id="pen-style">
+							<option value="fill" selected>Outline an area</option>
+							<option value="draw">Draw</option>
+						</select>
+						<select id="pen-style-hidden">
+							<option id="pen-style-hidden-option"></option>
+						</select>
+						 on the chart
 					</p>
 					<p>
-						<button id="heatmap-clear">Reset</button>
 						<a id="heatmap-save-link" download="heatmap.png">
 							<button id="heatmap-save" type="button">Save as an image</button>
 						</a>
+					</p>
+					<p class="smol-text">
+						<a href="https://twitter.com/Digibrah/status/1254122433822576640">What is this?</a>
 					</p>
 				</div>
 			</td>
@@ -103,7 +116,6 @@
 						<label for="crop-style">Crop:</label>
 						<select name="crop-style" id="crop-style">
 							<option value="square" selected>Square</option>
-							<!-- <option value="circle">Circle</option> -->
 							<option value="stretch">Stretch</option>
 							<option value="none">None</option>
 						</select>
