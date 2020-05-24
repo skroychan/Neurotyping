@@ -78,14 +78,15 @@ heatmapCanvas.addEventListener("contextmenu", rmbPress, false);
 heatmapTempCanvas.addEventListener("mousedown", heatmapMouseDown, false);
 heatmapTempCanvas.addEventListener("contextmenu", rmbPress, false);
 
+var heatmapEraserSize = 50;
+var heatmapPenSize = 10;
+
 var context = heatmapCanvas.getContext("2d");
-context.lineCap = "round";
-context.lineJoin = "round";
-context.lineWidth = 50;
+context.lineCap = context.lineJoin = "round";
+context.lineWidth = heatmapEraserSize;
 var tempContext = heatmapTempCanvas.getContext("2d");
-tempContext.lineCap = "round";
-tempContext.lineJoin = "round";
-tempContext.lineWidth = 10;
+tempContext.lineCap = tempContext.lineJoin = "round";
+tempContext.lineWidth = heatmapPenSize;
 
 var heatmapOutlinePoints;
 
@@ -95,15 +96,20 @@ var heatmapGreenButton = document.getElementById("green-color-button");
 heatmapGreenButton.addEventListener("click", function() { setHeatmapColorIndex(1); }, false);
 var heatmapYellowButton = document.getElementById("yellow-color-button");
 heatmapYellowButton.addEventListener("click", function() { setHeatmapColorIndex(2); }, false);
+var heatmapOrangeButton = document.getElementById("orange-color-button");
+heatmapOrangeButton.addEventListener("click", function() { setHeatmapColorIndex(3); }, false);
 var heatmapRedButton = document.getElementById("red-color-button");
-heatmapRedButton.addEventListener("click", function() { setHeatmapColorIndex(3); }, false);
-document.getElementById("heatmap-clear").addEventListener("click", heatmapReset);
+heatmapRedButton.addEventListener("click", function() { setHeatmapColorIndex(4); }, false);
+var heatmapPenStyle = document.getElementById("pen-style");
+heatmapPenStyle.addEventListener("change", onPenStyleChange, false);
+var heatmapHackSelect = document.getElementById("pen-style-hidden");
+var heatmapHackOption = document.getElementById("pen-style-hidden-option");
 var heatmapSaveLink = document.getElementById("heatmap-save-link");
 var heatmapSave = document.getElementById("heatmap-save");
 heatmapSave.addEventListener("click", heatmapSaveClick, false);
 
-var heatmapColors = ["eraser", "green", "yellow", "red"];
-var heatmapColorButtons = [heatmapEraserButton, heatmapGreenButton, heatmapYellowButton, heatmapRedButton];
+var heatmapColors = ["black", "green", "yellow", "orange", "red"];
+var heatmapColorButtons = [heatmapEraserButton, heatmapGreenButton, heatmapYellowButton, heatmapOrangeButton, heatmapRedButton];
 var heatmapActiveButtonClass = "color-button-active";
 
 var heatmapColorIndex;
@@ -126,7 +132,8 @@ var activeMenuClass = "active";
 
 var isDrag = false;
 var isHeatmapDraw = false;
-var isHeatmapErase = false;
+var heatmapModeFill = "fill", heatmapModeDraw = "draw", heatmapModeErase = "erase";
+var heatmapMode = heatmapModeFill;
 
 var dragTarget;
 var currentImage;
@@ -150,14 +157,14 @@ function setPage() {
 		divOptions.style.display = "none";
 
 		menuLinkHeatmap.classList.add(activeMenuClass);
-		divHeatmap.style.display = "block";
-		divHeatmapOptions.style.display = "block";
+		divHeatmap.style.display = "initial";
+		divHeatmapOptions.style.display = "initial";
 	} else {
 		menuLinkChart.classList.add(activeMenuClass);
-		chart.style.display = "block";
-		divPercent.style.display = "block";
-		divUpload.style.display = "block";
-		divOptions.style.display = "block";
+		chart.style.display = "initial";
+		divPercent.style.display = "initial";
+		divUpload.style.display = "initial";
+		divOptions.style.display = "initial";
 		
 		menuLinkHeatmap.classList.remove(activeMenuClass);
 		divHeatmap.style.display = "none";
@@ -244,8 +251,9 @@ function mouseMove(e) {
 		var x = e.clientX - chartBounds.left;
 		var y = e.clientY - chartBounds.top;
 
-		var ctx = isHeatmapErase ? context : tempContext;
-		if (isHeatmapErase) {
+		var ctx = tempContext;
+		if (heatmapMode != heatmapModeFill) {
+			ctx = context;
 			ctx.beginPath();
 			ctx.moveTo(x, y);
 			x -= e.movementX;
@@ -262,7 +270,7 @@ function mouseMove(e) {
 
 function stopDrag() {
 	if (isHeatmapDraw) {
-		if (!isHeatmapErase) {
+		if (heatmapMode == heatmapModeFill) {
 			tempContext.clearRect(0, 0, heatmapTempCanvas.width, heatmapTempCanvas.height);
 			heatmapOutlinePoints = simplifyPath(heatmapOutlinePoints, 2);
 
@@ -291,28 +299,32 @@ function stopDrag() {
 function heatmapMouseDown(e) {
 	isHeatmapDraw = true;
 
-	if (!isHeatmapErase) {
-		tempContext.strokeStyle = tempContext.fillStyle = heatmapColors[heatmapColorIndex];
-		tempContext.beginPath();
-		tempContext.moveTo(e.offsetX, e.offsetY);
+	var ctx = heatmapMode == heatmapModeFill ? tempContext : context;
+
+	if (heatmapMode == heatmapModeFill) {
 		heatmapOutlinePoints = [[e.offsetX, e.offsetY]];
-	} else {
-		context.beginPath();
-		context.moveTo(e.offsetX, e.offsetY);
 	}
+	
+	ctx.strokeStyle = ctx.fillStyle = heatmapColors[heatmapColorIndex];
+	ctx.beginPath();
+	ctx.moveTo(e.offsetX, e.offsetY);
 
 	return false;
 }
 
 function heatmapSetPen(isPen) {
-	isHeatmapErase = !isPen;
-	context.globalCompositeOperation = isHeatmapErase ? "destination-out" : "source-over";
-	heatmapTempCanvas.style.display = isHeatmapErase ? "none" : "block";
+	heatmapMode = isPen ? heatmapPenStyle.options[heatmapPenStyle.selectedIndex].value : heatmapModeErase;
+	context.lineWidth = tempContext.lineWidth = isPen ? heatmapPenSize : heatmapEraserSize;
+	context.globalCompositeOperation = heatmapMode == heatmapModeErase ? "destination-out" : "source-over";
+	heatmapTempCanvas.style.display = heatmapMode == heatmapModeErase ? "none" : "initial";
 }
 
-function heatmapReset() {
-	context.clearRect(0, 0, heatmapCanvas.width, heatmapCanvas.height);
-	setHeatmapColorIndex(1);
+function onPenStyleChange() {
+	if (heatmapMode != heatmapModeErase) heatmapMode = heatmapPenStyle.options[heatmapPenStyle.selectedIndex].value;
+	heatmapHackOption.innerHTML = heatmapPenStyle.options[heatmapPenStyle.selectedIndex].textContent;
+	heatmapHackSelect.style.display = "initial";
+	heatmapPenStyle.style.width = (heatmapHackSelect.clientWidth + 2) + "px";
+	heatmapHackSelect.style.display = "none";
 }
 
 function setHeatmapColorIndex(index) {
@@ -416,12 +428,6 @@ function updateImage(img, x, y) {
 		currentImage.width = imageSize;
 		currentImage.height = imageSize;
 	}
-
-	/*if (isCrop && isCircle) {
-		currentImage.img.classList.add(circleClassName);
-	} else {
-		currentImage.img.classList.remove(circleClassName);
-	}*/
 
 	currentImage.offset = calculateOffset(currentImage.img);
 
@@ -546,11 +552,6 @@ function cropSelectChange(e) {
 			isCircle = false;
 			isKeepAspect = false;
 			break;
-		/*case "circle":
-			isCrop = true;
-			isCircle = true;
-			isKeepAspect = false;
-			break;*/
 		case "stretch":
 			isCrop = false;
 			isKeepAspect = false;

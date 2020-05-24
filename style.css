@@ -7,6 +7,10 @@ body {
 	background-color: #f5f5f5;
 }
 
+a {
+	color: black;
+}
+
 ul {
 	list-style-type: none;
 	margin: 0;
@@ -57,8 +61,17 @@ li {
 
 .green-color { background: #008000; }
 .yellow-color { background: #FFFF00; }
+.orange-color { background: #FF8000; }
 .red-color { background: #FF0000; }
 .no-color { background: #F5F5F5; }
+
+#pen-style {
+	direction: rtl;
+}
+
+#pen-style-hidden {
+	display: none;
+}
 
 #chart-wrapper {
 	width: 900px;
