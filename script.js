@@ -37,13 +37,15 @@ var chartSize = chartBounds.right - chartBounds.left;
 var chartOuter = document.getElementById("chart-img");
 var chartResizeRatio = chartOuter.width / chartOuter.naturalWidth;
 
-var saveLink = document.getElementById("save-link");
 var sizeSelect = document.getElementById("image-size")
 sizeSelect.addEventListener("change", sizeSelectChange);
 var cropSelect = document.getElementById("crop-style")
 cropSelect.addEventListener("change", cropSelectChange);
 var snapCheckbox = document.getElementById("snap");
 snapCheckbox.addEventListener("change", snapChange);
+var saveLink = document.getElementById("save-link");
+var chartCopy = document.getElementById("chart-copy");
+chartCopy.addEventListener("click", chartCopyClick, false);
 
 var imageInput = document.getElementById("image-file");
 document.getElementById("pick-file").addEventListener("click", function() { imageInput.click(); });
@@ -108,6 +110,8 @@ var heatmapHackSelect = document.getElementById("pen-style-hidden");
 var heatmapHackOption = document.getElementById("pen-style-hidden-option");
 var heatmapSaveLink = document.getElementById("heatmap-save-link");
 var heatmapSave = document.getElementById("heatmap-save");
+var heatmapCopy = document.getElementById("heatmap-copy");
+heatmapCopy.addEventListener("click", heatmapCopyClick, false);
 heatmapSave.addEventListener("click", heatmapSaveClick, false);
 
 var heatmapColors = ["black", "green", "yellow", "orange", "red"];
@@ -337,7 +341,7 @@ function setHeatmapColorIndex(index) {
 	}
 }
 
-function heatmapSaveClick() {
+function heatmapToCanvas() {
 	var newCanvas = document.createElement("canvas");
 	newCanvas.width = chartOuter.naturalWidth;
 	newCanvas.height = chartOuter.naturalHeight;
@@ -350,9 +354,16 @@ function heatmapSaveClick() {
 	ctx.drawImage(chartOuter, 0, 0);
 	ctx.globalAlpha = window.getComputedStyle(heatmapCanvas).opacity;
 	ctx.drawImage(heatmapCanvas, offset, offset, size, size);
+	return newCanvas;
+}
 
-	var image = newCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+function heatmapSaveClick() {
+	var image = heatmapToCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream");
 	heatmapSaveLink.setAttribute("href", image);
+}
+
+function heatmapCopyClick() {
+	copyToClipboard(heatmapToCanvas());
 }
 
 function uploadImages() {
@@ -508,7 +519,7 @@ function applyCurrentImage(img) {
 	img.style.clip = "rect(0, " + (currentImage.width + currentImage.offset[0]) + ", " + currentImage.height + ", " + currentImage.offset[2] + ")";
 }
 
-function saveImage() {
+function chartToCanvas() {
 	var canvas = document.createElement("canvas");
 	canvas.width = chartOuter.naturalWidth;
 	canvas.height = chartOuter.naturalHeight;
@@ -537,8 +548,23 @@ function saveImage() {
 			);
 		}
 	}
-	var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+	return canvas;
+}
+
+function saveImage() {
+	var image = chartToCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream");
 	saveLink.setAttribute("href", image);
+}
+
+function chartCopyClick() {
+	copyToClipboard(chartToCanvas());
+}
+
+function copyToClipboard(canvas) {
+	canvas.toBlob(function(blob) { 
+		const item = new ClipboardItem({ "image/png": blob });
+		navigator.clipboard.write([item]); 
+	});
 }
 
 function sizeSelectChange(e) {
