@@ -117,6 +117,7 @@ heatmapSave.addEventListener("click", heatmapSaveClick, false);
 var heatmapColors = ["black", "green", "yellow", "orange", "red"];
 var heatmapColorButtons = [heatmapEraserButton, heatmapGreenButton, heatmapYellowButton, heatmapOrangeButton, heatmapRedButton];
 var heatmapActiveButtonClass = "color-button-active";
+var heatmapOpacity = 0.9;
 
 var heatmapColorIndex;
 setHeatmapColorIndex(1);
@@ -352,7 +353,7 @@ function heatmapToCanvas() {
 	ctx.fillStyle = "white";
 	ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
 	ctx.drawImage(chartOuter, 0, 0);
-	ctx.globalAlpha = window.getComputedStyle(heatmapCanvas).opacity;
+	ctx.globalAlpha = heatmapOpacity;
 	ctx.drawImage(heatmapCanvas, offset, offset, size, size);
 	return newCanvas;
 }
@@ -495,7 +496,8 @@ function setImageSize(size) {
 }
 
 function setCurrentImage(img, x, y) {
-	currentImage = { img: img, 
+	currentImage = { 
+		img: img, 
 		width: img.style.width.replace("px", ""), 
 		height: img.style.height.replace("px", ""), 
 		offset: [0, 0, 0, 0], 
