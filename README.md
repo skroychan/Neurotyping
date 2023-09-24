@@ -1,1 +1,1 @@
-https://skroychan.github.io/Neurotyping/
+https://neurotyping.skroy.moe/
